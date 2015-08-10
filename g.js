@@ -42,11 +42,32 @@ function run()
 	ctx.clearRect(0, 0, canvasW, canvasH);
     ctx.fillStyle="#000000";
     ctx.fillRect(0,0,canvasW,canvasH);
-}
 
 /*#############
     Funzioni Utili
 ##############*/
+function drawRect(width,height,alignment)
+{
+    var x=0;
+    var y=0;
+    if(alignment.indexOf("CENTER")>-1)
+    {
+        x=(canvasW-width)/2;
+        y=(canvasH-height)/2;
+    }
+
+    if(alignment.indexOf("TOP")>-1)
+        y=0;
+    else if(alignment.indexOf("BOTTOM")>-1)
+        y=canvasH-height;
+    else if(alignment.indexOf("LEFT")>-1)
+        x=0;
+    if(alignment.indexOf("RIGHT")>-1)
+        X=canvasW-width;
+
+    ctx.fillRect(x,y,width,height);
+
+}
 function rand(da, a)
 {
     if(da>a) return rand(a,da);
