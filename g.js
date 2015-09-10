@@ -49,6 +49,10 @@ levelUp();
 var pieces=[];
 pieces[0]=masterPiece;
 var selected=-1;
+var moving=false;
+var moveFactorX=0;
+var moveFactorY=0;
+var progressMovimento=0;
 
 function run()
 {
@@ -73,71 +77,113 @@ function run()
 
     //disegna il masterPiece
     ctx.fillStyle = 'green';
-    drawCircle(fromX-tileSize/2+tileSize*masterPiece[0].x,fromY-tileSize/2+tileSize*masterPiece[0].y,tileSize/2-10);
-    drawCircle(fromX-tileSize/2+tileSize*masterPiece[1].x,fromY-tileSize/2+tileSize*masterPiece[1].y,tileSize/2-10);
+    drawCircle(fromX+tileSize/2+tileSize*masterPiece[0].x,fromY-tileSize/2+tileSize*masterPiece[0].y,tileSize/2-10);
+    drawCircle(fromX+tileSize/2+tileSize*masterPiece[1].x,fromY-tileSize/2+tileSize*masterPiece[1].y,tileSize/2-10);
     ctx.beginPath();
     ctx.lineWidth=tileSize/2;
     ctx.strokeStyle="green"; // Green path
-    ctx.moveTo(fromX-tileSize/2+tileSize*masterPiece[0].x,fromY-tileSize/2+tileSize*masterPiece[0].y);
-    ctx.lineTo(fromX-tileSize/2+tileSize*masterPiece[1].x,fromY-tileSize/2+tileSize*masterPiece[1].y);
+    ctx.moveTo(fromX+tileSize/2+tileSize*masterPiece[0].x,fromY-tileSize/2+tileSize*masterPiece[0].y);
+    ctx.lineTo(fromX+tileSize/2+tileSize*masterPiece[1].x,fromY-tileSize/2+tileSize*masterPiece[1].y);
     ctx.stroke(); // Draw it
 
-    //selezione e muove
-    if(dragging)
+    if(moving)
     {
-        if(selected==-1)
-            selected=0;//TODO invece controllare le coordinate e decidere chi selezionare
-
-        minx=canvasW;
-        maxx=0;
-        miny=canvasH;
-        maxy=0;
+        //movimento in corso
         selectedPiece=pieces[selected];
-        for(i=0;i<selectedPiece.length;i++)
+        for(i=0;i<selectedPiece.length;i++) 
         {
-            if(minx>selectedPiece[i].x) minx=selectedPiece[i].x;
-            if(maxx<selectedPiece[i].x) maxx=selectedPiece[i].x;
-            if(miny>selectedPiece[i].y) miny=selectedPiece[i].y;
-            if(maxy<selectedPiece[i].y) maxy=selectedPiece[i].y;
+            selectedPiece[i].x+=moveFactorX/10;
+            selectedPiece[i].y+=moveFactorY/10;
         }
-        minx=fromX+(minx-1)*tileSize;
-        miny=fromY+(miny-1)*tileSize;
-        maxx=fromX+maxx*tileSize;
-        maxy=fromY+maxy*tileSize;
-        var moveTo;
-        //movimento top-left
-        if((mousex<minx && mousey<(miny+maxy)/2) || (mousex<(minx+maxx)/2 && mousey<miny))
+        if(++progressMovimento>=10)
         {
-            moveTo="top-left";
+            for(i=0;i<selectedPiece.length;i++) 
+            {
+                selectedPiece[i].x=Math.round(selectedPiece[i].x);
+                selectedPiece[i].y=Math.round(selectedPiece[i].y);
+            }
+            progressMovimento=0;
+            moving=false;
         }
-        else if((mousex>maxx && mousey<(miny+maxy)/2) || (mousex>(minx+maxx)/2 && mousey<miny))
-        {
-            moveTo="top-right";
-        }
-        else if((mousex>maxx && mousey>(miny+maxy)/2) || (mousex>(minx+maxx)/2 && mousey>maxy))
-        {
-            moveTo="bottom-right";
-        }
-        else if((mousex<minx && mousey>(miny+maxy)/2) || (mousex<(minx+maxx)/2 && mousey>maxy))
-        {
-            moveTo="bottom-left";
-        }
-        else moveTo="nowhere";
-        
-        /*/debug disegna lo square del pezzo
-        document.title=minx+" "+miny+" - "+maxx+" "+maxy;
-        minx=fromX+(minx-1)*tileSize;
-        miny=fromY+(miny-1)*tileSize;
-        maxx=fromX+maxx*tileSize;
-        maxy=fromY+maxy*tileSize;
-        ctx.fillStyle='red';
-        ctx.globalAlpha=0.8;
-        ctx.fillRect(minx,miny,maxx-minx,maxy-miny);
-        ctx.globalAlpha=1;*/
-       
-
     }
-    else selected=-1;
+    else
+    {
+        //selezione e muove
+        if(dragging)
+        {
+            if(selected==-1)
+                selected=0;//TODO invece controllare le coordinate e decidere chi selezionare
+
+            minx=canvasW;
+            maxx=0;
+            miny=canvasH;
+            maxy=0;
+            selectedPiece=pieces[selected];
+            for(i=0;i<selectedPiece.length;i++)
+            {
+                if(minx>selectedPiece[i].x) minx=selectedPiece[i].x;
+                if(maxx<selectedPiece[i].x) maxx=selectedPiece[i].x;
+                if(miny>selectedPiece[i].y) miny=selectedPiece[i].y;
+                if(maxy<selectedPiece[i].y) maxy=selectedPiece[i].y;
+            }
+            minx=fromX+(minx)*tileSize;
+            miny=fromY+(miny)*tileSize;
+            maxx=fromX+(maxx+1)*tileSize;
+            maxy=fromY+(maxy+1)*tileSize;
+            var moveTo;
+            //movimento
+            if((mousex<minx && mousey<(miny+maxy)/2) || (mousex<(minx+maxx)/2 && mousey<miny))
+            {
+                moveTo="top-left";
+                if(tryMove(-1,-1))
+                {
+                    moving=true;
+                    moveFactorX=-1;
+                    moveFactorY=-1;
+                }
+            }
+            else if((mousex>maxx && mousey<(miny+maxy)/2) || (mousex>(minx+maxx)/2 && mousey<miny))
+            {
+                moveTo="top-right";
+                if(tryMove(+1,-1))
+                {
+                    moving=true;
+                    moveFactorX=+1;
+                    moveFactorY=-1;
+                }
+            }
+            else if((mousex>maxx && mousey>(miny+maxy)/2) || (mousex>(minx+maxx)/2 && mousey>maxy))
+            {
+                moveTo="bottom-right";
+                if(tryMove(+1,+1))
+                {
+                    moving=true;
+                    moveFactorX=+1;
+                    moveFactorY=+1;
+                }
+            }
+            else if((mousex<minx && mousey>(miny+maxy)/2) || (mousex<(minx+maxx)/2 && mousey>maxy))
+            {
+                if(tryMove(-1,+1))
+                {
+                    moving=true;
+                    moveFactorX=-1;
+                    moveFactorY=+1;
+                }
+                moveTo="bottom-left";
+            }
+            else moveTo="nowhere";
+            //debug disegna lo square del pezzo
+            document.title=minx+" "+miny+" - "+maxx+" "+maxy;
+            ctx.fillStyle='red';
+            ctx.globalAlpha=0.8;
+            ctx.fillRect(minx,miny,maxx-minx,maxy-miny);
+            ctx.globalAlpha=1;
+           
+
+        }
+        else selected=-1;
+    }
 
     /*/debug disegna la matrice isFree
     ctx.fillStyle='green';
@@ -146,6 +192,15 @@ function run()
             if(isFree[i][k]) drawCircle(fromX+tileSize/2+tileSize*i, fromY+tileSize/2+tileSize*k, 35);
             else drawCircle(fromX+tileSize/2+tileSize*i, fromY+tileSize/2+tileSize*k, 5);
             */
+}
+function tryMove(xfactor, yfactor)
+{
+    if(selected==-1) return false;
+    selectedPiece=pieces[selected];
+    for(i=0;i<selectedPiece.length;i++)
+        if(!isFree[selectedPiece[i].x+xfactor][selectedPiece[i].y+yfactor])
+            return false;
+    return true;
 }
 function levelUp()
 {
