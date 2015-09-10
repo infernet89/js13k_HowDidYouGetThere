@@ -40,13 +40,15 @@ canvas.addEventListener("mouseup",rilasciatoMouse);
 
 activeTask=setInterval(run, 33);
 //Initialize
-var currentBall={};
-var ballsArray=[];
-var ballsArea=0;
-createBall(0,0);
-var percent=0;
-var gameRect={};
-var urtoFactor=0.8;
+var tileSize=Math.min(canvasW/10,canvasH/10);
+var isFree=[[true,false,true,false,true,false,true],[false,true,false,true,false,true,false],[true,false,true,false,true,false,true],[false,true,false,true,false,true,false],[true,false,true,false,true,false,true],[false,true,false,true,false,true,false],[true,false,true,false,true,false,true]];
+var masterPiece=[];
+masterPiece[0]={};
+masterPiece[1]={};
+levelUp();
+var pieces=[];
+pieces[0]=masterPiece;
+var selected=-1;
 
 function run()
 {
@@ -54,131 +56,107 @@ function run()
     ctx.fillStyle="#000000";
     ctx.fillRect(0,0,canvasW,canvasH);
     
+    //disegna la scacchiera
+    fromX=(canvasW-tileSize*7)/2;
+    fromY=(canvasH-tileSize*7)/2;
+    ctx.fillStyle = 'white';
+    for(i=0;i<7;i++)
+        for(k=0;k<7;k++)
+            if((i+k)%2==0)
+                ctx.fillRect(fromX+tileSize*i,fromY+tileSize*k,tileSize,tileSize);
+    //il bordo
+    ctx.fillStyle = 'red';
+    ctx.fillRect(fromX+tileSize,fromY-10,tileSize*6,10);
+    ctx.fillRect(fromX+tileSize*7,fromY-10,10,tileSize*7+10);
+    ctx.fillRect(fromX,fromY+tileSize*7,tileSize*7+10,10);
+    ctx.fillRect(fromX-10,fromY+tileSize,10,tileSize*6+10);
 
-    //############### prototype #####################
-    ctx.fillStyle="#D86852";
-    //ctx.fillRect(canvasW/2-200,canvasH/2-200,400,400);
-    drawRect(600,500,"CENTER")
-    gameRect.width=600;
-    gameRect.height=500;
-    gameRect.x=(canvasW-600)/2;
-    gameRect.y=(canvasH-500)/2;
+    //disegna il masterPiece
+    ctx.fillStyle = 'green';
+    drawCircle(fromX-tileSize/2+tileSize*masterPiece[0].x,fromY-tileSize/2+tileSize*masterPiece[0].y,tileSize/2-10);
+    drawCircle(fromX-tileSize/2+tileSize*masterPiece[1].x,fromY-tileSize/2+tileSize*masterPiece[1].y,tileSize/2-10);
+    ctx.beginPath();
+    ctx.lineWidth=tileSize/2;
+    ctx.strokeStyle="green"; // Green path
+    ctx.moveTo(fromX-tileSize/2+tileSize*masterPiece[0].x,fromY-tileSize/2+tileSize*masterPiece[0].y);
+    ctx.lineTo(fromX-tileSize/2+tileSize*masterPiece[1].x,fromY-tileSize/2+tileSize*masterPiece[1].y);
+    ctx.stroke(); // Draw it
 
-    //mouse interaction
+    //selezione e muove
     if(dragging)
     {
-        if(currentBall.x==0 && currentBall.y==0)
-            createBall(mousex,mousey);
-        else
-            currentBall.size++;
+        if(selected==-1)
+            selected=0;//TODO invece controllare le coordinate e decidere chi selezionare
+
+        minx=canvasW;
+        maxx=0;
+        miny=canvasH;
+        maxy=0;
+        selectedPiece=pieces[selected];
+        for(i=0;i<selectedPiece.length;i++)
+        {
+            if(minx>selectedPiece[i].x) minx=selectedPiece[i].x;
+            if(maxx<selectedPiece[i].x) maxx=selectedPiece[i].x;
+            if(miny>selectedPiece[i].y) miny=selectedPiece[i].y;
+            if(maxy<selectedPiece[i].y) maxy=selectedPiece[i].y;
+        }
+        minx=fromX+(minx-1)*tileSize;
+        miny=fromY+(miny-1)*tileSize;
+        maxx=fromX+maxx*tileSize;
+        maxy=fromY+maxy*tileSize;
+        var moveTo;
+        //movimento top-left
+        if((mousex<minx && mousey<(miny+maxy)/2) || (mousex<(minx+maxx)/2 && mousey<miny))
+        {
+            moveTo="top-left";
+        }
+        else if((mousex>maxx && mousey<(miny+maxy)/2) || (mousex>(minx+maxx)/2 && mousey<miny))
+        {
+            moveTo="top-right";
+        }
+        else if((mousex>maxx && mousey>(miny+maxy)/2) || (mousex>(minx+maxx)/2 && mousey>maxy))
+        {
+            moveTo="bottom-right";
+        }
+        else if((mousex<minx && mousey>(miny+maxy)/2) || (mousex<(minx+maxx)/2 && mousey>maxy))
+        {
+            moveTo="bottom-left";
+        }
+        else moveTo="nowhere";
+        
+        /*/debug disegna lo square del pezzo
+        document.title=minx+" "+miny+" - "+maxx+" "+maxy;
+        minx=fromX+(minx-1)*tileSize;
+        miny=fromY+(miny-1)*tileSize;
+        maxx=fromX+maxx*tileSize;
+        maxy=fromY+maxy*tileSize;
+        ctx.fillStyle='red';
+        ctx.globalAlpha=0.8;
+        ctx.fillRect(minx,miny,maxx-minx,maxy-miny);
+        ctx.globalAlpha=1;*/
+       
+
     }
-    else
+    else selected=-1;
+
+    /*/debug disegna la matrice isFree
+    ctx.fillStyle='green';
+    for(i=0;i<7;i++)
+        for(k=0;k<7;k++)
+            if(isFree[i][k]) drawCircle(fromX+tileSize/2+tileSize*i, fromY+tileSize/2+tileSize*k, 35);
+            else drawCircle(fromX+tileSize/2+tileSize*i, fromY+tileSize/2+tileSize*k, 5);
+            */
+}
+function levelUp()
+{
+    level++;
+    if(level==1)
     {
-        if(currentBall.x!=0 || currentBall.y!=0)
-        {
-            var tmpBall={};
-            tmpBall.x=currentBall.x;
-            tmpBall.y=currentBall.y;
-            tmpBall.ax=0;
-            tmpBall.ay=0;
-            tmpBall.dx=0;
-            tmpBall.dy=0;
-            tmpBall.size=currentBall.size;
-            tmpBall.ay=0.89;
-            ballsArray.push(tmpBall);
-            ballsArea+=(Math.PI*tmpBall.size*tmpBall.size);
-            createBall(0,0);
-        }
+        masterPiece[0].x=2;
+        masterPiece[0].y=4;
+        masterPiece[1].x=3;
+        masterPiece[1].y=5;
     }
-
-    ctx.fillStyle="#000000";
-    ctx.font = "20px Arial";
-    //calcolo area
-    percent=Math.round(((Math.PI*currentBall.size*currentBall.size+ballsArea)/(600*500))*1000)/10;
-    ctx.fillText(percent+"%",canvasW/2,canvasH/2);
-
-    moveBalls();
-    drawBalls();
-}
-function moveBalls()
-{
-    var cosa;
-    for(i=0;i<ballsArray.length;i++)
-    {
-        cosa=ballsArray[i];
-        cosa.dx+=cosa.ax;
-        cosa.dy+=cosa.ay;
-        cosa.x+=cosa.dx;
-        cosa.y+=cosa.dy;
-        //collisioni
-        if(cosa.y+cosa.size>gameRect.y+gameRect.height)
-        {
-            cosa.y=gameRect.y+gameRect.height-cosa.size;
-            cosa.dy=cosa.dy*-urtoFactor;
-        }
-        if(cosa.y-cosa.size<gameRect.y)
-        {
-            cosa.y=gameRect.y+cosa.size;
-            cosa.dy=cosa.dy*-urtoFactor;
-        }
-
-        if(cosa.x+cosa.size>gameRect.x+gameRect.width)
-        {
-            cosa.x=gameRect.x+gameRect.width-cosa.size;
-            cosa.dx=cosa.dx*-urtoFactor;
-        }
-        if(cosa.x-cosa.size<gameRect.x)
-        {
-            cosa.x=gameRect.x+cosa.size;
-            cosa.dx=cosa.dx*-urtoFactor;
-        }
-        //collisioni fra palle
-        var dist;
-        var altra;
-        for(k=i+1;k<ballsArray.length;k++)
-        {
-            altra=ballsArray[k];
-            dist=(altra.x-cosa.x)*(altra.x-cosa.x)+(altra.y-cosa.y)*(altra.y-cosa.y);
-            if(dist<(altra.size+cosa.size)*(altra.size+cosa.size))
-            {
-                //better physics here.
-                dist=Math.sqrt(dist);
-                var qmotoCosa=(Math.abs(cosa.dx)+Math.abs(cosa.dy))*urtoFactor*cosa.size;
-                var qmotoAltra=(Math.abs(altra.dx)+Math.abs(altra.dy))*urtoFactor*altra.size;
-
-                cosa.dx=(qmotoAltra/cosa.size)*(cosa.x-altra.x)/dist;
-                cosa.dy=(qmotoAltra/cosa.size)*(cosa.y-altra.y)/dist;
-
-            
-                altra.dx=(qmotoCosa/altra.size)*(altra.x-cosa.x)/dist;
-                altra.dy=(qmotoCosa/altra.size)*(altra.y-cosa.y)/dist;
-
-                //evitiamo compenetrazione?
-                /*cosa.x+=cosa.dx;
-                cosa.y+=cosa.dy;
-                altra.x+=altra.dx;
-                altra.y+=altra.dy;*/
-            }
-        }
-
-    }
-}
-function drawBalls()
-{
-    ctx.save();
-    ctx.globalAlpha=0.7;
-    drawCircle(currentBall.x,currentBall.y,currentBall.size);
-    for(i=0;i<ballsArray.length;i++)
-        drawCircle(ballsArray[i].x,ballsArray[i].y,ballsArray[i].size);
-    ctx.restore();
-}
-function createBall(x,y)
-{
-    currentBall.x=x;
-    currentBall.y=y;
-    currentBall.dx=0;
-    currentBall.dy=0;
-    currentBall.size=0;
 }
 /*#############
     Funzioni Utili
@@ -187,7 +165,7 @@ function drawCircle(x,y,radius)
 {
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-    ctx.fillStyle = 'green';
+    //ctx.fillStyle = 'green';
     ctx.fill();
     ctx.lineWidth = radius/10;
     ctx.strokeStyle = '#003300';
@@ -271,9 +249,9 @@ function cliccatoMouse(evt)
 }
 function mossoMouse(evt)
 {
-    /*var rect = canvas.getBoundingClientRect();
+    var rect = canvas.getBoundingClientRect();
     mousex=(evt.clientX-rect.left)/(rect.right-rect.left)*canvasW;
-    mousey=(evt.clientY-rect.top)/(rect.bottom-rect.top)*canvasH;*/
+    mousey=(evt.clientY-rect.top)/(rect.bottom-rect.top)*canvasH;
 }
 function rilasciatoMouse(evt)
 {
