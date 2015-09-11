@@ -43,11 +43,13 @@ activeTask=setInterval(run, 33);
 var tileSize=Math.min(canvasW/10,canvasH/10);
 var isFree=[[true,false,true,false,true,false,true],[false,true,false,true,false,true,false],[true,false,true,false,true,false,true],[false,true,false,true,false,true,false],[true,false,true,false,true,false,true],[false,true,false,true,false,true,false],[true,false,true,false,true,false,true]];
 var masterPiece=[];
+masterPiece.color = 'green';
 masterPiece[0]={};
 masterPiece[1]={};
 levelUp();
 var pieces=[];
 pieces[0]=masterPiece;
+var selectedPiece=-1;
 var selected=-1;
 var moving=false;
 var moveFactorX=0;
@@ -75,16 +77,34 @@ function run()
     ctx.fillRect(fromX,fromY+tileSize*7,tileSize*7+10,10);
     ctx.fillRect(fromX-10,fromY+tileSize,10,tileSize*6+10);
 
-    //disegna il masterPiece
-    ctx.fillStyle = 'green';
-    drawCircle(fromX+tileSize/2+tileSize*masterPiece[0].x,fromY-tileSize/2+tileSize*masterPiece[0].y,tileSize/2-10);
-    drawCircle(fromX+tileSize/2+tileSize*masterPiece[1].x,fromY-tileSize/2+tileSize*masterPiece[1].y,tileSize/2-10);
+    //disegna i pezzi
+    drawPiece(masterPiece);
+    /*ctx.fillStyle = 'green';
+    for(i=0;i<masterPiece.length;i++)
+        drawCircle(fromX+tileSize/2+tileSize*masterPiece[i].x,fromY-tileSize/2+tileSize*masterPiece[i].y,tileSize/2-10);
+    //drawCircle(fromX+tileSize/2+tileSize*masterPiece[0].x,fromY-tileSize/2+tileSize*masterPiece[0].y,tileSize/2-10);
+    //drawCircle(fromX+tileSize/2+tileSize*masterPiece[1].x,fromY-tileSize/2+tileSize*masterPiece[1].y,tileSize/2-10);
     ctx.beginPath();
     ctx.lineWidth=tileSize/2;
     ctx.strokeStyle="green"; // Green path
     ctx.moveTo(fromX+tileSize/2+tileSize*masterPiece[0].x,fromY-tileSize/2+tileSize*masterPiece[0].y);
-    ctx.lineTo(fromX+tileSize/2+tileSize*masterPiece[1].x,fromY-tileSize/2+tileSize*masterPiece[1].y);
-    ctx.stroke(); // Draw it
+    for(i=1;i<masterPiece.length;i++)
+        ctx.lineTo(fromX+tileSize/2+tileSize*masterPiece[i].x,fromY-tileSize/2+tileSize*masterPiece[i].y);
+    //ctx.lineTo(fromX+tileSize/2+tileSize*masterPiece[1].x,fromY-tileSize/2+tileSize*masterPiece[1].y);
+    ctx.stroke(); // Draw it*/
+
+    //disegna la selezione eventuale
+    if(selected!=-1)
+    {
+        //disegna una linea gialla per far capire che è selezionato
+        ctx.strokeStyle="yellow"; // Green path
+        ctx.beginPath();
+        ctx.lineWidth=tileSize/10;
+        ctx.moveTo(fromX+tileSize/2+tileSize*selectedPiece[0].x,fromY+tileSize/2+tileSize*selectedPiece[0].y)
+        for(i=1;i<selectedPiece.length;i++)
+            ctx.lineTo(fromX+tileSize/2+tileSize*selectedPiece[i].x,fromY+tileSize/2+tileSize*selectedPiece[i].y)
+        ctx.stroke();
+    }
 
     if(moving)
     {
@@ -112,7 +132,11 @@ function run()
         if(dragging)
         {
             if(selected==-1)
+            {
                 selected=0;//TODO invece controllare le coordinate e decidere chi selezionare
+                selectedPiece=pieces[selected];
+            }
+                
 
             minx=canvasW;
             maxx=0;
@@ -173,34 +197,72 @@ function run()
                 moveTo="bottom-left";
             }
             else moveTo="nowhere";
-            //debug disegna lo square del pezzo
+            /*/debug disegna lo square del pezzo
             document.title=minx+" "+miny+" - "+maxx+" "+maxy;
             ctx.fillStyle='red';
             ctx.globalAlpha=0.8;
             ctx.fillRect(minx,miny,maxx-minx,maxy-miny);
-            ctx.globalAlpha=1;
+            ctx.globalAlpha=1;*/
            
 
         }
         else selected=-1;
     }
 
-    /*/debug disegna la matrice isFree
+    //debug disegna la matrice isFree
     ctx.fillStyle='green';
     for(i=0;i<7;i++)
         for(k=0;k<7;k++)
             if(isFree[i][k]) drawCircle(fromX+tileSize/2+tileSize*i, fromY+tileSize/2+tileSize*k, 35);
             else drawCircle(fromX+tileSize/2+tileSize*i, fromY+tileSize/2+tileSize*k, 5);
-            */
+            
+}
+function drawPiece(piece)
+{
+    ctx.fillStyle = piece.color;
+    for(i=0;i<piece.length;i++)
+        drawCircle(fromX+tileSize/2+tileSize*piece[i].x,fromY+tileSize/2+tileSize*piece[i].y,tileSize/2-10);
+    ctx.beginPath();
+    ctx.lineWidth=tileSize/3;
+    ctx.strokeStyle=piece.color;
+    ctx.moveTo(fromX+tileSize/2+tileSize*piece[0].x,fromY+tileSize/2+tileSize*piece[0].y);
+    for(i=1;i<piece.length;i++)
+        ctx.lineTo(fromX+tileSize/2+tileSize*piece[i].x,fromY+tileSize/2+tileSize*piece[i].y);
+    ctx.stroke(); // Draw it
 }
 function tryMove(xfactor, yfactor)
 {
     if(selected==-1) return false;
+    var ris=true;
     selectedPiece=pieces[selected];
+    //libero gli spazi attuali
     for(i=0;i<selectedPiece.length;i++)
-        if(!isFree[selectedPiece[i].x+xfactor][selectedPiece[i].y+yfactor])
-            return false;
-    return true;
+        if(selectedPiece[i].x!=-1 && selectedPiece[i].y!=-1)
+            isFree[selectedPiece[i].x][selectedPiece[i].y]=true;
+
+    //controllo se si può spostare
+    for(i=0;i<selectedPiece.length && ris;i++)
+        if(selectedPiece[i].x+xfactor<0 || selectedPiece[i].x+xfactor>6 || selectedPiece[i].y+yfactor<0 || selectedPiece[i].y+yfactor>6)
+        {
+            if(selectedPiece[i].x+xfactor!=-1 || selectedPiece[i].y+yfactor!=-1) ris=false;
+        }
+        else if(!isFree[selectedPiece[i].x+xfactor][selectedPiece[i].y+yfactor])
+            ris=false;
+
+    //occupo gli spazi
+    if(ris)
+    {//i prossimi
+        for(i=0;i<selectedPiece.length;i++)
+            if(selectedPiece[i].x+xfactor!=-1 && selectedPiece[i].y+yfactor!=-1)
+                isFree[selectedPiece[i].x+xfactor][selectedPiece[i].y+yfactor]=false;
+    }
+    else
+    {//di nuovo gli attuali
+        for(i=0;i<selectedPiece.length;i++)
+            if(selectedPiece[i].x!=-1 && selectedPiece[i].y!=-1)
+                isFree[selectedPiece[i].x][selectedPiece[i].y]=false;
+    }
+    return ris;
 }
 function levelUp()
 {
@@ -211,6 +273,8 @@ function levelUp()
         masterPiece[0].y=4;
         masterPiece[1].x=3;
         masterPiece[1].y=5;
+        isFree[2][4]=false;
+        isFree[3][5]=false;
     }
 }
 /*#############
