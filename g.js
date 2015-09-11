@@ -78,24 +78,14 @@ function run()
     ctx.fillRect(fromX-10,fromY+tileSize,10,tileSize*6+10);
 
     //disegna i pezzi
-    drawPiece(masterPiece);
-    /*ctx.fillStyle = 'green';
-    for(i=0;i<masterPiece.length;i++)
-        drawCircle(fromX+tileSize/2+tileSize*masterPiece[i].x,fromY-tileSize/2+tileSize*masterPiece[i].y,tileSize/2-10);
-    //drawCircle(fromX+tileSize/2+tileSize*masterPiece[0].x,fromY-tileSize/2+tileSize*masterPiece[0].y,tileSize/2-10);
-    //drawCircle(fromX+tileSize/2+tileSize*masterPiece[1].x,fromY-tileSize/2+tileSize*masterPiece[1].y,tileSize/2-10);
-    ctx.beginPath();
-    ctx.lineWidth=tileSize/2;
-    ctx.strokeStyle="green"; // Green path
-    ctx.moveTo(fromX+tileSize/2+tileSize*masterPiece[0].x,fromY-tileSize/2+tileSize*masterPiece[0].y);
-    for(i=1;i<masterPiece.length;i++)
-        ctx.lineTo(fromX+tileSize/2+tileSize*masterPiece[i].x,fromY-tileSize/2+tileSize*masterPiece[i].y);
-    //ctx.lineTo(fromX+tileSize/2+tileSize*masterPiece[1].x,fromY-tileSize/2+tileSize*masterPiece[1].y);
-    ctx.stroke(); // Draw it*/
+    //console.debug(pieces.length);
+    for(drawi=0;drawi<pieces.length;drawi++)
+        drawPiece(pieces[drawi]);
 
     //disegna la selezione eventuale
     if(selected!=-1)
     {
+        console.debug(selected);
         //disegna una linea gialla per far capire che è selezionato
         ctx.strokeStyle="yellow"; // Green path
         ctx.beginPath();
@@ -133,93 +123,116 @@ function run()
         {
             if(selected==-1)
             {
-                selected=0;//TODO invece controllare le coordinate e decidere chi selezionare
+                mx=Math.floor((mousex-fromX)/tileSize);
+                my=Math.floor((mousey-fromY)/tileSize);
+                //console.debug(mx+" "+my);
+                if(isFree[mx][my])
+                {
+                    //TODO gestire la connessione tra pezzi
+                }
+                else
+                {
+                    for(i=0;i<pieces.length;i++)
+                    {
+                        temp=pieces[i];
+                        for(k=0;k<temp.length;k++)
+                            if(temp[k].x==mx && temp[k].y==my)
+                            {
+                                selected=i;
+                                selectedPiece=pieces[i];
+                            }
+                    }
+                }
+                //selected=0;//TODO invece controllare le coordinate e decidere chi selezionare
+                //selectedPiece=pieces[selected];
+            }
+            else
+            {
+                minx=canvasW;
+                maxx=0;
+                miny=canvasH;
+                maxy=0;
                 selectedPiece=pieces[selected];
-            }
-                
-
-            minx=canvasW;
-            maxx=0;
-            miny=canvasH;
-            maxy=0;
-            selectedPiece=pieces[selected];
-            for(i=0;i<selectedPiece.length;i++)
-            {
-                if(minx>selectedPiece[i].x) minx=selectedPiece[i].x;
-                if(maxx<selectedPiece[i].x) maxx=selectedPiece[i].x;
-                if(miny>selectedPiece[i].y) miny=selectedPiece[i].y;
-                if(maxy<selectedPiece[i].y) maxy=selectedPiece[i].y;
-            }
-            minx=fromX+(minx)*tileSize;
-            miny=fromY+(miny)*tileSize;
-            maxx=fromX+(maxx+1)*tileSize;
-            maxy=fromY+(maxy+1)*tileSize;
-            var moveTo;
-            //movimento
-            if((mousex<minx && mousey<(miny+maxy)/2) || (mousex<(minx+maxx)/2 && mousey<miny))
-            {
-                moveTo="top-left";
-                if(tryMove(-1,-1))
+                for(i=0;i<selectedPiece.length;i++)
                 {
-                    moving=true;
-                    moveFactorX=-1;
-                    moveFactorY=-1;
+                    if(minx>selectedPiece[i].x) minx=selectedPiece[i].x;
+                    if(maxx<selectedPiece[i].x) maxx=selectedPiece[i].x;
+                    if(miny>selectedPiece[i].y) miny=selectedPiece[i].y;
+                    if(maxy<selectedPiece[i].y) maxy=selectedPiece[i].y;
                 }
-            }
-            else if((mousex>maxx && mousey<(miny+maxy)/2) || (mousex>(minx+maxx)/2 && mousey<miny))
-            {
-                moveTo="top-right";
-                if(tryMove(+1,-1))
+                minx=fromX+(minx)*tileSize;
+                miny=fromY+(miny)*tileSize;
+                maxx=fromX+(maxx+1)*tileSize;
+                maxy=fromY+(maxy+1)*tileSize;
+                var moveTo;
+                //movimento
+                if((mousex<minx && mousey<(miny+maxy)/2) || (mousex<(minx+maxx)/2 && mousey<miny))
                 {
-                    moving=true;
-                    moveFactorX=+1;
-                    moveFactorY=-1;
+                    moveTo="top-left";
+                    if(tryMove(-1,-1))
+                    {
+                        moving=true;
+                        moveFactorX=-1;
+                        moveFactorY=-1;
+                    }
                 }
-            }
-            else if((mousex>maxx && mousey>(miny+maxy)/2) || (mousex>(minx+maxx)/2 && mousey>maxy))
-            {
-                moveTo="bottom-right";
-                if(tryMove(+1,+1))
+                else if((mousex>maxx && mousey<(miny+maxy)/2) || (mousex>(minx+maxx)/2 && mousey<miny))
                 {
-                    moving=true;
-                    moveFactorX=+1;
-                    moveFactorY=+1;
+                    moveTo="top-right";
+                    if(tryMove(+1,-1))
+                    {
+                        moving=true;
+                        moveFactorX=+1;
+                        moveFactorY=-1;
+                    }
                 }
-            }
-            else if((mousex<minx && mousey>(miny+maxy)/2) || (mousex<(minx+maxx)/2 && mousey>maxy))
-            {
-                if(tryMove(-1,+1))
+                else if((mousex>maxx && mousey>(miny+maxy)/2) || (mousex>(minx+maxx)/2 && mousey>maxy))
                 {
-                    moving=true;
-                    moveFactorX=-1;
-                    moveFactorY=+1;
+                    moveTo="bottom-right";
+                    if(tryMove(+1,+1))
+                    {
+                        moving=true;
+                        moveFactorX=+1;
+                        moveFactorY=+1;
+                    }
                 }
-                moveTo="bottom-left";
+                else if((mousex<minx && mousey>(miny+maxy)/2) || (mousex<(minx+maxx)/2 && mousey>maxy))
+                {
+                    if(tryMove(-1,+1))
+                    {
+                        moving=true;
+                        moveFactorX=-1;
+                        moveFactorY=+1;
+                    }
+                    moveTo="bottom-left";
+                }
+                else moveTo="nowhere";
+                /*/debug disegna lo square del pezzo
+                document.title=minx+" "+miny+" - "+maxx+" "+maxy;
+                ctx.fillStyle='red';
+                ctx.globalAlpha=0.8;
+                ctx.fillRect(minx,miny,maxx-minx,maxy-miny);
+                ctx.globalAlpha=1;*/
             }
-            else moveTo="nowhere";
-            /*/debug disegna lo square del pezzo
-            document.title=minx+" "+miny+" - "+maxx+" "+maxy;
-            ctx.fillStyle='red';
-            ctx.globalAlpha=0.8;
-            ctx.fillRect(minx,miny,maxx-minx,maxy-miny);
-            ctx.globalAlpha=1;*/
-           
-
         }
         else selected=-1;
     }
 
-    //debug disegna la matrice isFree
+    //se masterPiece[0] è a -1, levelUp
+    if(masterPiece[0].x==-1 && masterPiece[0].y==-1)
+        levelUp();
+    /*/debug disegna la matrice isFree
     ctx.fillStyle='green';
     for(i=0;i<7;i++)
         for(k=0;k<7;k++)
             if(isFree[i][k]) drawCircle(fromX+tileSize/2+tileSize*i, fromY+tileSize/2+tileSize*k, 35);
-            else drawCircle(fromX+tileSize/2+tileSize*i, fromY+tileSize/2+tileSize*k, 5);
+            else drawCircle(fromX+tileSize/2+tileSize*i, fromY+tileSize/2+tileSize*k, 5);*/
             
 }
 function drawPiece(piece)
 {
     ctx.fillStyle = piece.color;
+    //console.log(piece.color);
     for(i=0;i<piece.length;i++)
         drawCircle(fromX+tileSize/2+tileSize*piece[i].x,fromY+tileSize/2+tileSize*piece[i].y,tileSize/2-10);
     ctx.beginPath();
@@ -266,6 +279,13 @@ function tryMove(xfactor, yfactor)
 }
 function levelUp()
 {
+    //reset stuff
+    for(i=0;i<7;i++)
+        for(k=0;k<7;k++)
+            if((i+k)%2==0) isFree[i][k]=true;
+    pieces=[];
+    pieces[0]=masterPiece;
+
     level++;
     if(level==1)
     {
@@ -275,6 +295,32 @@ function levelUp()
         masterPiece[1].y=5;
         isFree[2][4]=false;
         isFree[3][5]=false;
+    }
+    else if(level==2)
+    {
+        masterPiece[0].x=5;
+        masterPiece[0].y=5;
+        isFree[5][5]=false;
+        masterPiece[1].x=6;
+        masterPiece[1].y=6;
+        isFree[6][6]=false;
+
+        var tmp=[];
+        tmp.color='blue';
+        tmp[0]={};
+        tmp[0].x=0;
+        tmp[0].y=0;
+        isFree[0][0]=false;
+        tmp[1]={};
+        tmp[1].x=1;
+        tmp[1].y=1;
+        isFree[1][1]=false;
+        tmp[2]={};
+        tmp[2].x=1;
+        tmp[2].y=3;
+        isFree[1][3]=false;
+        pieces.push(tmp);
+
     }
 }
 /*#############
