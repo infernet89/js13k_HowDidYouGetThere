@@ -1,3 +1,4 @@
+var DEBUG=0;
 //costant
 var TO_RADIANS = Math.PI/180; 
 
@@ -7,7 +8,7 @@ var canvasW;
 var canvasH;
 var ctx;
 var activeTask;
-var level=0;//0 menu
+var level=0;//0 menu TODO
 
 //mobile controls
 var mousex=-100;
@@ -46,7 +47,6 @@ var masterPiece=[];
 masterPiece.color = 'green';
 masterPiece[0]={};
 masterPiece[1]={};
-levelUp();
 var pieces=[];
 pieces[0]=masterPiece;
 var selectedPiece=-1;
@@ -55,12 +55,53 @@ var moving=false;
 var moveFactorX=0;
 var moveFactorY=0;
 var progressMovimento=0;
+var cursor;
+var testoSopra="LEVEL N";
+var testoSotto="Random fun fact";
+
+//pictures
+var nope=new Image();
+nope.src="pics/nope.png";
+nope.onload=function() {
+    this.height=tileSize/2;
+    this.width=tileSize/2;
+}
+var topleft=new Image();
+topleft.src="pics/topleft.png";
+topleft.onload=function() {
+    this.height=tileSize/2;
+    this.width=tileSize/2;
+}
+var topright=new Image();
+topright.src="pics/topright.png";
+topright.onload=function() {
+    this.height=tileSize/2;
+    this.width=tileSize/2;
+}
+var botright=new Image();
+botright.src="pics/botright.png";
+botright.onload=function() {
+    this.height=tileSize/2;
+    this.width=tileSize/2;
+}
+var botleft=new Image();
+botleft.src="pics/botleft.png";
+botleft.onload=function() {
+    this.height=tileSize/2;
+    this.width=tileSize/2;
+}
+//levelUp();//TODO
 
 function run()
 {
 	ctx.clearRect(0, 0, canvasW, canvasH);
     ctx.fillStyle="#000000";
     ctx.fillRect(0,0,canvasW,canvasH);
+    if(level==0)
+    {
+        //TODO disegna il menu
+        return;
+    }
     
     //disegna la scacchiera
     fromX=(canvasW-tileSize*7)/2;
@@ -85,7 +126,7 @@ function run()
     //disegna la selezione eventuale
     if(selected!=-1)
     {
-        console.debug(selected);
+        //console.debug(selected);
         //disegna una linea gialla per far capire che è selezionato
         ctx.strokeStyle="yellow"; // Green path
         ctx.beginPath();
@@ -115,6 +156,13 @@ function run()
             progressMovimento=0;
             moving=false;
         }
+
+        if(cursor!=-1)
+        {
+            document.body.style.cursor = "none";
+            ctx.drawImage(cursor,mousex-cursor.width/2,mousey-cursor.height/2,cursor.width,cursor.height);
+        }
+        else document.body.style.cursor = "default";
     }
     else
     {
@@ -128,7 +176,36 @@ function run()
                 //console.debug(mx+" "+my);
                 if(isFree[mx][my])
                 {
-                    //TODO gestire la connessione tra pezzi
+                    var horizontalP1=-1;
+                    var horizontalP2=-2;
+                    var verticalP1=-3;
+                    var verticalP2=-4;
+                    for(i=0;i<pieces.length;i++)
+                    {
+                        temp=pieces[i];
+                        for(k=0;k<temp.length;k++)
+                        {
+                            if(temp[k].x==mx-1 && temp[k].y==my)
+                                horizontalP1=i;
+                            else if(temp[k].x==mx+1 && temp[k].y==my)
+                                horizontalP2=i;
+                            if(temp[k].x==mx && temp[k].y==my-1)
+                                verticalP1=i;
+                            else if(temp[k].x==mx && temp[k].y==my+1)
+                                verticalP2=i;
+                        }
+                    }
+                    //console.debug(horizontalP1+"=="+horizontalP2+"  "+verticalP1+"="+verticalP2);
+                    if(horizontalP1==horizontalP2)
+                    {
+                        selected=horizontalP1;
+                        selectedPiece=pieces[selected];
+                    }
+                    else if(verticalP1==verticalP2)
+                    {
+                        selected=verticalP2;
+                        selectedPiece=pieces[selected];
+                    }
                 }
                 else
                 {
@@ -143,11 +220,10 @@ function run()
                             }
                     }
                 }
-                //selected=0;//TODO invece controllare le coordinate e decidere chi selezionare
-                //selectedPiece=pieces[selected];
             }
             else
             {
+                cursor=-1;
                 minx=canvasW;
                 maxx=0;
                 miny=canvasH;
@@ -174,7 +250,9 @@ function run()
                         moving=true;
                         moveFactorX=-1;
                         moveFactorY=-1;
+                        cursor=topleft;
                     }
+                    else cursor=nope;
                 }
                 else if((mousex>maxx && mousey<(miny+maxy)/2) || (mousex>(minx+maxx)/2 && mousey<miny))
                 {
@@ -184,7 +262,9 @@ function run()
                         moving=true;
                         moveFactorX=+1;
                         moveFactorY=-1;
+                        cursor=topright;
                     }
+                    else cursor=nope;
                 }
                 else if((mousex>maxx && mousey>(miny+maxy)/2) || (mousex>(minx+maxx)/2 && mousey>maxy))
                 {
@@ -194,19 +274,30 @@ function run()
                         moving=true;
                         moveFactorX=+1;
                         moveFactorY=+1;
+                        cursor=botright;
                     }
+                    else cursor=nope;
                 }
                 else if((mousex<minx && mousey>(miny+maxy)/2) || (mousex<(minx+maxx)/2 && mousey>maxy))
                 {
+                    moveTo="bottom-left";
                     if(tryMove(-1,+1))
                     {
                         moving=true;
                         moveFactorX=-1;
                         moveFactorY=+1;
+                        cursor=botleft;
                     }
-                    moveTo="bottom-left";
+                    else cursor=nope; 
                 }
                 else moveTo="nowhere";
+
+                if(cursor!=-1)
+                {
+                    document.body.style.cursor = "none";
+                    ctx.drawImage(cursor,mousex-cursor.width/2,mousey-cursor.height/2,cursor.width,cursor.height);
+                }
+                else document.body.style.cursor = "default";
                 /*/debug disegna lo square del pezzo
                 document.title=minx+" "+miny+" - "+maxx+" "+maxy;
                 ctx.fillStyle='red';
@@ -215,12 +306,22 @@ function run()
                 ctx.globalAlpha=1;*/
             }
         }
-        else selected=-1;
+        else
+        {
+            selected=-1;
+            document.body.style.cursor = "default";
+        }
     }
 
     //se masterPiece[0] è a -1, levelUp
     if(masterPiece[0].x==-1 && masterPiece[0].y==-1)
         levelUp();
+
+    //testo sopra e sotto
+    ctx.font = "20px Arial";
+    ctx.fillStyle="white";
+    ctx.fillText(testoSopra,canvasW/2-40,20);
+    ctx.fillText(testoSotto,canvasW/2-(testoSotto.length*5),canvasH-10);
     /*/debug disegna la matrice isFree
     ctx.fillStyle='green';
     for(i=0;i<7;i++)
@@ -283,18 +384,25 @@ function levelUp()
     for(i=0;i<7;i++)
         for(k=0;k<7;k++)
             if((i+k)%2==0) isFree[i][k]=true;
-    pieces=[];
-    pieces[0]=masterPiece;
+            else isFree[i][k]=true;
+    pieces=[]; 
+    selectedPiece=-1;
+    selected=-1;
+    dragging=false;
 
     level++;
     if(level==1)
     {
         masterPiece[0].x=2;
         masterPiece[0].y=4;
+        isFree[2][4]=false;
         masterPiece[1].x=3;
         masterPiece[1].y=5;
-        isFree[2][4]=false;
         isFree[3][5]=false;
+        pieces.push(masterPiece);
+
+        testoSopra="LEVEL 1";
+        testoSotto="Drag the green object outside";
     }
     else if(level==2)
     {
@@ -304,6 +412,7 @@ function levelUp()
         masterPiece[1].x=6;
         masterPiece[1].y=6;
         isFree[6][6]=false;
+        pieces.push(masterPiece);
 
         var tmp=[];
         tmp.color='blue';
@@ -320,6 +429,9 @@ function levelUp()
         tmp[2].y=3;
         isFree[1][3]=false;
         pieces.push(tmp);
+
+        testoSopra="LEVEL 2";
+        testoSotto="Sometimes, you need to move obstacles to reach your goal";
 
     }
 }
