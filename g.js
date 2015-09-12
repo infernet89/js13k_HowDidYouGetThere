@@ -90,6 +90,18 @@ botleft.onload=function() {
     this.height=tileSize/2;
     this.width=tileSize/2;
 }
+var smile=new Image();
+smile.src="pics/smile.png";
+smile.onload=function() {
+    this.height=tileSize;
+    this.width=tileSize;
+}
+var sad=new Image();
+sad.src="pics/sad.png";
+sad.onload=function() {
+    this.height=tileSize;
+    this.width=tileSize;
+}
 //levelUp();//TODO
 
 function run()
@@ -97,9 +109,77 @@ function run()
 	ctx.clearRect(0, 0, canvasW, canvasH);
     ctx.fillStyle="#000000";
     ctx.fillRect(0,0,canvasW,canvasH);
+    //il menu
     if(level==0)
     {
-        //TODO disegna il menu
+        r=rand(1,10);
+        ctx.font = "40px Courier";
+        ctx.fillStyle="#FFFFFF";
+        ctx.fillText("How the ",canvasW/2-390,150);
+        ctx.fillStyle="#FFBBBB";
+        if(r%2==0)
+            ctx.fillText("hell",canvasW/2-205,150);
+        else if(r%3==0)
+            ctx.fillText("damn",canvasW/2-205,150);
+        else if(r%3==0)
+            ctx.fillText("heck",canvasW/2-205,150);
+        else
+            ctx.fillText("fuck",canvasW/2-205,150);
+        ctx.fillStyle="#FFFFFF";
+        ctx.fillText("did you get there?",canvasW/2-95,150);
+        
+        //disegna il tutorial
+        ctx.fillStyle = 'green';
+        drawCircle(50,canvasH/2-tileSize-10,tileSize/2-10);
+        drawCircle(50+tileSize,canvasH/2-10,tileSize/2-10);
+        ctx.beginPath();
+        ctx.lineWidth=tileSize/3;
+        ctx.strokeStyle='green';
+        ctx.moveTo(50,canvasH/2-tileSize-10);
+        ctx.lineTo(50+tileSize,canvasH/2-10,tileSize/2-10);
+        ctx.stroke();
+        ctx.drawImage(smile,50-tileSize/2+5,canvasH/2-tileSize-10-tileSize/2+5,tileSize-10,tileSize-10);
+        ctx.drawImage(sad,50+tileSize/2+5,canvasH/2-10-tileSize/2+5,tileSize-10,tileSize-10);
+
+        ctx.font= '20px Courier';
+        ctx.fillStyle='white';
+        ctx.fillText("This is ",30+tileSize*2,canvasH/2-tileSize-30);
+        ctx.fillText("He likes to stuck himself.",30+tileSize*2,canvasH/2-tileSize);
+        ctx.fillText("Help him reach freedom. ",30+tileSize*2,canvasH/2-tileSize+20);
+
+        ctx.fillText("    moves on a chessboard. ",30+tileSize*2,canvasH/2-tileSize+60);
+        ctx.fillText("Like his friends, only on white tiles. ",30+tileSize*2,canvasH/2-tileSize+80);
+        ctx.fillText("Drag them diagonally. ",30+tileSize*2,canvasH/2-tileSize+110);
+        ctx.fillStyle='green';
+        ctx.fillText("Tim",125+tileSize*2,canvasH/2-tileSize-30);
+        ctx.fillText("Tim",30+tileSize*2,canvasH/2-tileSize+60);
+        //FINE TUTORIAL
+
+        ctx.font = "40px Courier";
+        ctx.fillStyle="#666666";
+        ctx.fillRect(canvasW/2-60,canvasH-150,120,80);
+        ctx.fillStyle="#0000FF";
+        ctx.fillText("PLAY",canvasW/2-50,canvasH-100);
+
+        //credits
+        ctx.fillStyle='white';
+        ctx.font = "12px Arial";
+        ctx.fillText("Made by Infernet89",canvasW-120,canvasH-10);
+        if(dragging && mousex>canvasW/2-60 && mousex<canvasW/2+60 && mousey>canvasH-150 && mousey<canvasH-70)
+        {
+            levelUp();
+        }
+        return;
+    }
+    if(level==7)
+    {
+        ctx.font = "40px Courier";
+        ctx.fillStyle="#FFFFFF";
+        ctx.fillText("No more levels!",canvasW/2-150,tileSize);
+        ctx.font = "80px Courier";
+        ctx.fillText("YOU ARE NOW FREE.",canvasW/2-320,tileSize*4);
+        ctx.font = "10px Courier";
+        ctx.fillText("to play something else...",canvasW/2-320,tileSize*4+10);
         return;
     }
     
@@ -127,14 +207,16 @@ function run()
     if(selected!=-1)
     {
         //console.debug(selected);
-        //disegna una linea gialla per far capire che è selezionato
-        ctx.strokeStyle="yellow"; // Green path
+        //disegna una linea per far capire che è selezionato
+        ctx.globalAlpha=0.5;
+        ctx.strokeStyle="white";
         ctx.beginPath();
         ctx.lineWidth=tileSize/10;
         ctx.moveTo(fromX+tileSize/2+tileSize*selectedPiece[0].x,fromY+tileSize/2+tileSize*selectedPiece[0].y)
         for(i=1;i<selectedPiece.length;i++)
             ctx.lineTo(fromX+tileSize/2+tileSize*selectedPiece[i].x,fromY+tileSize/2+tileSize*selectedPiece[i].y)
         ctx.stroke();
+        ctx.globalAlpha=1;
     }
 
     if(moving)
@@ -320,8 +402,8 @@ function run()
     //testo sopra e sotto
     ctx.font = "20px Arial";
     ctx.fillStyle="white";
-    ctx.fillText(testoSopra,canvasW/2-40,20);
-    ctx.fillText(testoSotto,canvasW/2-(testoSotto.length*5),canvasH-10);
+    ctx.fillText(testoSopra,canvasW/2-40,50);
+    ctx.fillText(testoSotto,canvasW/2-(testoSotto.length*5),canvasH-40);
     /*/debug disegna la matrice isFree
     ctx.fillStyle='green';
     for(i=0;i<7;i++)
@@ -343,6 +425,13 @@ function drawPiece(piece)
     for(i=1;i<piece.length;i++)
         ctx.lineTo(fromX+tileSize/2+tileSize*piece[i].x,fromY+tileSize/2+tileSize*piece[i].y);
     ctx.stroke(); // Draw it
+
+    //disegno faccine
+    if(piece==masterPiece)
+    {
+        ctx.drawImage(smile,fromX+tileSize/2+tileSize*piece[0].x-tileSize/2+5,fromY+tileSize/2+tileSize*piece[0].y-tileSize/2+5,tileSize-10,tileSize-10);
+        ctx.drawImage(sad,fromX+tileSize/2+tileSize*piece[1].x-tileSize/2+5,fromY+tileSize/2+tileSize*piece[1].y-tileSize/2+5,tileSize-10,tileSize-10);
+    }
 }
 function tryMove(xfactor, yfactor)
 {
@@ -432,9 +521,254 @@ function levelUp()
 
         testoSopra="LEVEL 2";
         testoSotto="Sometimes, you need to move obstacles to reach your goal";
-
     }
+    else if(level==3)
+    {
+        masterPiece[0].x=2;
+        masterPiece[0].y=4;
+        isFree[2][4]=false;
+        masterPiece[1].x=3;
+        masterPiece[1].y=5;
+        isFree[3][5]=false;
+        pieces.push(masterPiece);
+
+        var tmp=[];
+        tmp.color='blue';
+        tmp[0]={};
+        tmp[0].x=2;
+        tmp[0].y=0;
+        isFree[2][0]=false;
+        tmp[1]={};
+        tmp[1].x=1;
+        tmp[1].y=1;
+        isFree[1][1]=false;
+        pieces.push(tmp);
+
+        var tmp=[];
+        tmp.color='yellow';
+        tmp[0]={};
+        tmp[0].x=0;
+        tmp[0].y=2;
+        isFree[0][2]=false;
+        tmp[1]={};
+        tmp[1].x=2;
+        tmp[1].y=2;
+        isFree[2][2]=false;
+        tmp[2]={};
+        tmp[2].x=3;
+        tmp[2].y=1;
+        isFree[3][1]=false;
+        pieces.push(tmp);
+
+        testoSopra="LEVEL 3";
+        testoSotto="Everybody want to reach freedom";
+    }
+    else if(level==4)
+    {
+        masterPiece[0].x=5;
+        masterPiece[0].y=5;
+        isFree[5][5]=false;
+        masterPiece[1].x=6;
+        masterPiece[1].y=6;
+        isFree[6][6]=false;
+        pieces.push(masterPiece);
+
+        var tmp=[];
+        tmp.color='blue';
+        tmp[0]={};
+        tmp[0].x=3;
+        tmp[0].y=5;
+        isFree[3][5]=false;
+        tmp[1]={};
+        tmp[1].x=3;
+        tmp[1].y=3;
+        isFree[3][3]=false;
+        tmp[2]={};
+        tmp[2].x=5;
+        tmp[2].y=3;
+        isFree[5][3]=false;
+        pieces.push(tmp);
+
+        var tmp=[];
+        tmp.color='yellow';
+        tmp[0]={};
+        tmp[0].x=6;
+        tmp[0].y=0;
+        isFree[6][0]=false;
+        tmp[1]={};
+        tmp[1].x=6;
+        tmp[1].y=2;
+        isFree[6][2]=false;
+        tmp[2]={};
+        tmp[2].x=6;
+        tmp[2].y=4;
+        isFree[6][4]=false;
+        pieces.push(tmp);
+
+        var tmp=[];
+        tmp.color='purple';
+        tmp[0]={};
+        tmp[0].x=0;
+        tmp[0].y=2;
+        isFree[0][2]=false;
+        tmp[1]={};
+        tmp[1].x=2;
+        tmp[1].y=2;
+        isFree[2][2]=false;
+        tmp[2]={};
+        tmp[2].x=4;
+        tmp[2].y=2;
+        isFree[4][2]=false;
+        pieces.push(tmp);
+
+        testoSopra="LEVEL 4";
+        testoSotto="Have so many close friends is not always good";
+    }
+    else if(level==5)
+    {
+        masterPiece[0].x=5;
+        masterPiece[0].y=1;
+        isFree[5][1]=false;
+        masterPiece[1].x=6;
+        masterPiece[1].y=2;
+        isFree[6][2]=false;
+        pieces.push(masterPiece);
+
+        var tmp=[];
+        tmp.color='blue';
+        tmp[0]={};
+        tmp[0].x=0;
+        tmp[0].y=2;
+        isFree[0][2]=false;
+        tmp[1]={};
+        tmp[1].x=1;
+        tmp[1].y=3;
+        isFree[1][3]=false;
+        tmp[2]={};
+        tmp[2].x=1;
+        tmp[2].y=5;
+        isFree[1][5]=false;
+        pieces.push(tmp);
+
+        var tmp=[];
+        tmp.color='red';
+        tmp[0]={};
+        tmp[0].x=2;
+        tmp[0].y=0;
+        isFree[2][0]=false;
+        tmp[1]={};
+        tmp[1].x=2;
+        tmp[1].y=2;
+        isFree[2][2]=false;
+        pieces.push(tmp);
+
+        var tmp=[];
+        tmp.color='yellow';
+        tmp[0]={};
+        tmp[0].x=2;
+        tmp[0].y=4;
+        isFree[2][4]=false;
+        tmp[1]={};
+        tmp[1].x=3;
+        tmp[1].y=3;
+        isFree[3][3]=false;
+        tmp[2]={};
+        tmp[2].x=5;
+        tmp[2].y=3;
+        isFree[5][3]=false;
+        pieces.push(tmp);
+
+        testoSopra="LEVEL 5";
+        testoSotto="Are you afraid of crowd?";
+    }
+    else if(level==6)
+    {
+        masterPiece[0].x=3;
+        masterPiece[0].y=3;
+        isFree[3][3]=false;
+        masterPiece[1].x=4;
+        masterPiece[1].y=4;
+        isFree[4][4]=false;
+        pieces.push(masterPiece);
+
+        var tmp=[];
+        tmp.color='yellow';
+        tmp[0]={};
+        tmp[0].x=1;
+        tmp[0].y=1;
+        isFree[1][1]=false;
+        tmp[1]={};
+        tmp[1].x=2;
+        tmp[1].y=0;
+        isFree[2][0]=false;
+        tmp[2]={};
+        tmp[2].x=4;
+        tmp[2].y=0;
+        isFree[4][0]=false;
+        pieces.push(tmp);
+
+        var tmp=[];
+        tmp.color='purple';
+        tmp[0]={};
+        tmp[0].x=0;
+        tmp[0].y=2;
+        isFree[0][2]=false;
+        tmp[1]={};
+        tmp[1].x=0;
+        tmp[1].y=4;
+        isFree[0][4]=false;
+        pieces.push(tmp);
+
+        var tmp=[];
+        tmp.color='red';
+        tmp[0]={};
+        tmp[0].x=4;
+        tmp[0].y=2;
+        isFree[4][2]=false;
+        tmp[1]={};
+        tmp[1].x=5;
+        tmp[1].y=1;
+        isFree[5][1]=false;;
+        pieces.push(tmp);
+
+        var tmp=[];
+        tmp.color='blue';
+        tmp[0]={};
+        tmp[0].x=6;
+        tmp[0].y=2;
+        isFree[6][2]=false;
+        tmp[1]={};
+        tmp[1].x=6;
+        tmp[1].y=4;
+        isFree[6][4]=false;
+        tmp[2]={};
+        tmp[2].x=5;
+        tmp[2].y=5;
+        isFree[5][5]=false;
+        pieces.push(tmp);
+
+        var tmp=[];
+        tmp.color='cyan';
+        tmp[0]={};
+        tmp[0].x=1;
+        tmp[0].y=3;
+        isFree[1][3]=false;
+        tmp[1]={};
+        tmp[1].x=1;
+        tmp[1].y=5;
+        isFree[1][5]=false;
+        tmp[2]={};
+        tmp[2].x=3;
+        tmp[2].y=5;
+        isFree[3][5]=false;
+        pieces.push(tmp);
+
+        testoSopra="LEVEL 6";
+        testoSotto="The next test is impossible";
+    }
+
 }
+
 /*#############
     Funzioni Utili
 ##############*/
