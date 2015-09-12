@@ -109,6 +109,13 @@ function run()
 	ctx.clearRect(0, 0, canvasW, canvasH);
     ctx.fillStyle="#000000";
     ctx.fillRect(0,0,canvasW,canvasH);
+    //scacchiera di sfondo?
+    ctx.fillStyle='#0F0F0F';
+     for(i=0;i<canvasW/(tileSize/5);i++)
+        for(k=0;k<canvasH/(tileSize/5);k++)
+            if((i+k)%2==0)
+                ctx.fillRect((tileSize/5)*i,(tileSize/5)*k,tileSize/5,tileSize/5);
+
     //il menu
     if(level==0)
     {
@@ -127,32 +134,39 @@ function run()
             ctx.fillText("fuck",canvasW/2-205,150);
         ctx.fillStyle="#FFFFFF";
         ctx.fillText("did you get there?",canvasW/2-95,150);
+        ctx.fillRect(canvasW/2-390,160,700,1);
         
         //disegna il tutorial
+        ctx.globalAlpha=0.8;
+        ctx.fillStyle='#EEEEEE';
+        ctx.fillRect(tileSize-11,canvasH/2-tileSize*2-1,702,232);
+        ctx.fillStyle='#0A0A0A';
+        ctx.fillRect(tileSize-10,canvasH/2-tileSize*2,700,230);
+        ctx.globalAlpha=1;
         ctx.fillStyle = 'green';
-        drawCircle(50,canvasH/2-tileSize-10,tileSize/2-10);
-        drawCircle(50+tileSize,canvasH/2-10,tileSize/2-10);
+        drawCircle(50+tileSize,canvasH/2-tileSize-10,tileSize/2-10);
+        drawCircle(50+2*tileSize,canvasH/2-10,tileSize/2-10);
         ctx.beginPath();
         ctx.lineWidth=tileSize/3;
         ctx.strokeStyle='green';
-        ctx.moveTo(50,canvasH/2-tileSize-10);
-        ctx.lineTo(50+tileSize,canvasH/2-10,tileSize/2-10);
+        ctx.moveTo(50+tileSize,canvasH/2-tileSize-10);
+        ctx.lineTo(50+2*tileSize,canvasH/2-10,tileSize/2-10);
         ctx.stroke();
-        ctx.drawImage(smile,50-tileSize/2+5,canvasH/2-tileSize-10-tileSize/2+5,tileSize-10,tileSize-10);
-        ctx.drawImage(sad,50+tileSize/2+5,canvasH/2-10-tileSize/2+5,tileSize-10,tileSize-10);
+        ctx.drawImage(smile,50-tileSize/2+5+tileSize,canvasH/2-tileSize-10-tileSize/2+5,tileSize-10,tileSize-10);
+        ctx.drawImage(sad,50+tileSize/2+5+tileSize,canvasH/2-10-tileSize/2+5,tileSize-10,tileSize-10);
 
         ctx.font= '20px Courier';
         ctx.fillStyle='white';
-        ctx.fillText("This is ",30+tileSize*2,canvasH/2-tileSize-30);
-        ctx.fillText("He likes to stuck himself.",30+tileSize*2,canvasH/2-tileSize);
-        ctx.fillText("Help him reach freedom. ",30+tileSize*2,canvasH/2-tileSize+20);
+        ctx.fillText("This is ",30+tileSize*3,canvasH/2-tileSize-30);
+        ctx.fillText("He likes to stuck himself.",30+tileSize*3,canvasH/2-tileSize);
+        ctx.fillText("Help him reach freedom. ",30+tileSize*3,canvasH/2-tileSize+20);
 
-        ctx.fillText("    moves on a chessboard. ",30+tileSize*2,canvasH/2-tileSize+60);
-        ctx.fillText("Like his friends, only on white tiles. ",30+tileSize*2,canvasH/2-tileSize+80);
-        ctx.fillText("Drag them diagonally. ",30+tileSize*2,canvasH/2-tileSize+110);
+        ctx.fillText("    moves on a chessboard. ",30+tileSize*3,canvasH/2-tileSize+60);
+        ctx.fillText("Like his friends, only on white tiles. ",30+tileSize*3,canvasH/2-tileSize+80);
+        ctx.fillText("Drag them diagonally. ",30+tileSize*3,canvasH/2-tileSize+110);
         ctx.fillStyle='green';
-        ctx.fillText("Tim",125+tileSize*2,canvasH/2-tileSize-30);
-        ctx.fillText("Tim",30+tileSize*2,canvasH/2-tileSize+60);
+        ctx.fillText("Tim",125+tileSize*3,canvasH/2-tileSize-30);
+        ctx.fillText("Tim",30+tileSize*3,canvasH/2-tileSize+60);
         //FINE TUTORIAL
 
         ctx.font = "40px Courier";
@@ -160,6 +174,7 @@ function run()
         ctx.fillRect(canvasW/2-60,canvasH-150,120,80);
         ctx.fillStyle="#0000FF";
         ctx.fillText("PLAY",canvasW/2-50,canvasH-100);
+        ctx.fillRect(canvasW/2-50,canvasH-90,90,1);
 
         //credits
         ctx.fillStyle='white';
@@ -191,6 +206,12 @@ function run()
         for(k=0;k<7;k++)
             if((i+k)%2==0)
                 ctx.fillRect(fromX+tileSize*i,fromY+tileSize*k,tileSize,tileSize);
+    ctx.fillStyle = 'black';
+    for(i=0;i<7;i++)
+        for(k=0;k<7;k++)
+            if((i+k)%2!=0)
+                ctx.fillRect(fromX+tileSize*i,fromY+tileSize*k,tileSize,tileSize);
+
     //il bordo
     ctx.fillStyle = 'red';
     ctx.fillRect(fromX+tileSize,fromY-10,tileSize*6,10);
@@ -377,6 +398,17 @@ function run()
                 if(cursor!=-1)
                 {
                     document.body.style.cursor = "none";
+                    if(cursor==nope)
+                    {
+                        if(moveTo=='top-left')
+                            ctx.drawImage(topleft,mousex-cursor.width/2,mousey-cursor.height/2,cursor.width,cursor.height);        
+                        else if(moveTo=='top-right')
+                            ctx.drawImage(topright,mousex-cursor.width/2,mousey-cursor.height/2,cursor.width,cursor.height);        
+                        else if(moveTo=='bottom-right')
+                            ctx.drawImage(botright,mousex-cursor.width/2,mousey-cursor.height/2,cursor.width,cursor.height);        
+                        else if(moveTo=='bottom-left')
+                            ctx.drawImage(botleft,mousex-cursor.width/2,mousey-cursor.height/2,cursor.width,cursor.height);        
+                    }
                     ctx.drawImage(cursor,mousex-cursor.width/2,mousey-cursor.height/2,cursor.width,cursor.height);
                 }
                 else document.body.style.cursor = "default";
